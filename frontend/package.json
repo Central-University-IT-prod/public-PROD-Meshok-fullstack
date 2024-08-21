@@ -1,0 +1,27 @@
+{
+	"name": "nuxt-app",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "nuxt build",
+		"dev": "nuxt dev --host",
+		"generate": "nuxt generate",
+		"preview": "nuxt preview",
+		"postinstall": "nuxt prepare"
+	},
+	"dependencies": {
+		"jspdf": "^2.5.1",
+		"qrcode-vue3": "^1.6.8",
+		"vue": "^3.4.21",
+		"vue-router": "^4.3.0"
+	},
+	"devDependencies": {
+		"@nuxt/ui": "^2.15.0",
+		"@nuxtjs/mdc": "^0.6.1",
+		"chart.js": "^3.9.1",
+		"nuxt": "^3.11.1",
+		"sass": "^1.72.0",
+		"vue-chart-3": "^3.1.8",
+		"yup": "^1.4.0"
+	}
+}

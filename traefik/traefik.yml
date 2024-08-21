@@ -1,0 +1,28 @@
+log:
+  level: INFO
+
+entryPoints:
+  http:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+  https:
+    address: ":443"
+
+
+providers:
+  docker:
+    exposedByDefault: false
+
+
+certificatesResolvers:
+  letsEncrypt:
+    acme:
+      email: kll2dot@gmail.com
+      storage: /letsencrypt/acme.json
+      # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: http

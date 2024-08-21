@@ -1,0 +1,55 @@
+services:
+  backend:
+    build:
+      context: backend/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+    ports:
+      - 80:8000
+
+    environment:
+      - HOST=db
+      - PORT=5432
+      - USER_NAME=postgres
+      - PASSWORD=postgres
+      - DATABASE=feedbacks
+
+    networks:
+      - internal
+
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build: frontend/
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    user: postgres
+
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "feedbacks"
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+    networks:
+      - internal
+
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      start_period: 5s
+      interval: 10s
+      timeout: 3s
+      retries: 3
+networks:
+  internal:
+
+volumes:
+  db-data:

@@ -1,0 +1,95 @@
+services:
+  backend:
+    build:
+      context: backend/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+    environment:
+      - HOST=db
+      - PORT=5432
+      - USER_NAME=postgres
+      - PASSWORD=postgres
+      - DATABASE=feedbacks
+
+    networks:
+      - internal
+      - proxy
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.entrypoints=https"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend.rule=Host(`api.feedbacker.online`)"
+      - "traefik.http.routers.backend.tls.certresolver=letsEncrypt"
+      - "traefik.docker.network=feedbacker-proxy"
+
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build: frontend/
+    restart: unless-stopped
+    networks:
+      - proxy
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.entrypoints=https"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.rule=Host(`feedbacker.online`)"
+      - "traefik.http.routers.frontend.tls.certresolver=letsEncrypt"
+      - "traefik.docker.network=feedbacker-proxy"
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    user: postgres
+
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "feedbacks"
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+    networks:
+      - internal
+
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      start_period: 5s
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  traefik:
+    build:
+      context: traefik/
+      dockerfile: Dockerfile
+    container_name: traefik
+    restart: unless-stopped
+
+    ports:
+      - 80:80
+      - 443:443
+
+    volumes:
+      - type: bind
+        source: ./traefik/traefik.yml
+        target: /traefik.yml
+        read_only: true
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: feedbacker-proxy
+  internal:
+
+volumes:
+  db-data:
+  letsencrypt:
